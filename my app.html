@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InstaMemeaix - Video Player</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 15px 0;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+        }
+        
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .nav-tabs {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 0 20px;
+            overflow-x: auto;
+            white-space: nowrap;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .tab-button {
+            background: none;
+            border: none;
+            padding: 15px 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: #666;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+            display: inline-block;
+        }
+        
+        .tab-button.active,
+        .tab-button:hover {
+            color: #667eea;
+            border-bottom-color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+        }
+        
+        .main-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .video-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .video-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        }
+        
+        .video-thumbnail {
+            position: relative;
+            width: 100%;
+            height: 180px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        
+        .play-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            transition: all 0.3s ease;
+        }
+        
+        .video-card:hover .play-overlay {
+            background: rgba(102, 126, 234, 0.9);
+            transform: translate(-50%, -50%) scale(1.1);
+        }
+        
+        .video-info {
+            padding: 15px;
+        }
+        
+        .video-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #333;
+            line-height: 1.3;
+        }
+        
+        .video-meta {
+            font-size: 12px;
+            color: #666;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .video-duration {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: 500;
+        }
+        
+        .video-player-container {
+            background: rgba(0, 0, 0, 0.9);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        .video-wrapper {
+            position: relative;
+            width: 100%;
+            height: 60vh;
+            background: #000;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .video-player iframe {
+            width: 100%;
+            height: 100%;
+            border-radius: 10px;
+            border: none;
+        }
+        
+        .fullscreen-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+        
+        .fullscreen-btn:hover {
+            background: rgba(102, 126, 234, 0.9);
+            transform: scale(1.05);
+        }
+        
+        .video-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .control-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .control-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .comment-section {
+            margin-top: 20px;
+            color: white;
+        }
+        
+        .comment-section input {
+            padding: 10px;
+            width: 70%;
+            border-radius: 20px;
+            border: none;
+            outline: none;
+            margin-right: 10px;
+        }
+        
+        .comment-section button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 20px;
+            background: #667eea;
+            color: white;
+            cursor: pointer;
+        }
+        
+        .comment-list {
+            margin-top: 15px;
+        }
+        
+        .comment-list p {
+            margin: 5px 0;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px;
+            border-radius: 10px;
+        }
+        
+        .premium-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .premium-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+        
+        .premium-title {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .premium-features {
+            list-style: none;
+            margin: 20px 0;
+            text-align: left;
+            max-width: 400px;
+            margin: 20px auto;
+        }
+        
+        .premium-features li {
+            padding: 8px 0;
+            position: relative;
+            padding-left: 25px;
+        }
+        
+        .premium-features li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #4CAF50;
+            font-weight: bold;
+        }
+        
+        .premium-btn {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+        
+        .premium-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(76, 175, 80, 0.4);
+        }
+        
+        .telegram-card {
+            background: #0088cc;
+            color: white;
+        }
+        
+        .telegram-card .video-thumbnail {
+            background: linear-gradient(135deg, #0088cc, #006699);
+        }
+        
+        .telegram-card .video-title {
+            color: white;
+        }
+        
+        .telegram-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 136, 204, 0.3);
+        }
+
+        /* Fullscreen styles */
+        .video-wrapper.fullscreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 9999;
+            border-radius: 0;
+            background: black;
+        }
+        
+        .video-wrapper.fullscreen iframe {
+            border-radius: 0;
+        }
+        
+        .video-wrapper.fullscreen .fullscreen-btn {
+            top: 20px;
+            right: 20px;
+            padding: 12px 16px;
+            font-size: 16px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .logo {
+                font-size: 1.5rem;
+            }
+            
+            .video-grid {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+                gap: 15px;
+            }
+            
+            .video-controls {
+                justify-content: center;
+            }
+            
+            .control-btn {
+                flex: none;
+                min-width: 80px;
+                margin: 2px;
+            }
+            
+            .comment-section input {
+                width: 60%;
+            }
+            
+            .video-wrapper {
+                height: 40vh;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .main-content {
+                padding: 15px;
+            }
+            
+            .video-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .video-controls {
+                flex-direction: column;
+            }
+            
+            .comment-section input {
+                width: 100%;
+                margin-bottom: 10px;
+                margin-right: 0;
+            }
+            
+            .video-wrapper {
+                height: 30vh;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">InstaMemeaix</div>
+            <div style="font-size: 14px; color: #666;">🎬 Video Player</div>
+        </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs">
+        <button class="tab-button active" onclick="switchTab('home')">🏠 Home</button>
+        <button class="tab-button" onclick="switchTab('player')">▶️ Player</button>
+        <button class="tab-button" onclick="switchTab('premium')">👑 Premium</button>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Home Tab -->
+        <div id="home" class="tab-content active">
+            <h2 style="color: white; margin-bottom: 20px; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">🔥 Trending Videos</h2>
+            
+            <!-- Banner Ad after trending videos heading -->
+            <div style="background: linear-gradient(45deg, #74b9ff, #0984e3); color: white; text-align: center; padding: 15px; margin-bottom: 20px; border-radius: 10px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+                💰 Special Offers - Click Here for Amazing Deals! 💰
+            </div>
+            
+            <div class="video-grid">
+                <!-- Telegram Channel Card -->
+                <div class="video-card telegram-card" onclick="window.open('https://t.me/+5kBVbfiVnFI2ZDll', '_blank')">
+                    <div class="video-thumbnail">
+                        <div style="color: white; font-size: 24px;">📱</div>
+                        <div class="play-overlay">📲</div>
+                    </div>
+                    <div class="video-info">
+                        <div class="video-title">Watch Video</div>
+                        <div class="video-meta">
+                            <span>Latest updates</span>
+                            <span class="video-duration">Live</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Banner Ad after Telegram Channel -->
+            <div style="background: linear-gradient(45deg, #e17055, #fdcb6e); color: white; text-align: center; padding: 15px; margin-top: 20px; border-radius: 10px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+                💎 Exclusive Content - Subscribe Now for Premium Access! 💎
+            </div>
+        </div>
+
+        <!-- Player Tab -->
+        <div id="player" class="tab-content">
+            <!-- Banner Ad above video player -->
+            <div style="background: linear-gradient(45deg, #00b894, #00cec9); color: white; text-align: center; padding: 15px; margin-bottom: 20px; border-radius: 10px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+                🎬 Premium Video Experience - Upgrade Now! 🎬
+            </div>
+            
+            <h2 style="color: white; margin-bottom: 20px; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">🎥 Video Player</h2>
+            <div class="video-player-container">
+                <div class="video-wrapper" id="videoWrapper">
+                    <iframe 
+                        id="videoPlayer" 
+                        src="https://www.youtube.com/embed/dQw4w9WgXcQ" 
+                        allowfullscreen>
+                    </iframe>
+                    <button class="fullscreen-btn" onclick="toggleFullscreen()" id="fullscreenBtn">
+                        🔳 Fullscreen
+                    </button>
+                </div>
+                <div class="video-controls">
+                    <button class="control-btn" onclick="likeVideo()">👍 Like</button>
+                    <button class="control-btn" onclick="shareVideo()">🔗 Share</button>
+                    <button class="control-btn" onclick="downloadVideo()">📥 Download</button>
+                </div>
+                <div class="comment-section">
+                    <h3 style="margin-bottom: 15px;">💬 Comments</h3>
+                    <input type="text" id="commentInput" placeholder="Add a comment...">
+                    <button onclick="addComment()">Post</button>
+                    <div class="comment-list" id="commentsList">
+                        <p>Great video! 👍</p>
+                        <p>Thanks for sharing 😊</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Banner Ad below video player -->
+            <div style="background: linear-gradient(45deg, #a29bfe, #6c5ce7); color: white; text-align: center; padding: 15px; margin-top: 20px; border-radius: 10px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+                💰 Earn Money Online - Join Our Affiliate Program! 💰
+            </div>
+        </div>
+
+        <!-- Premium Tab -->
+        <div id="premium" class="tab-content">
+            <div class="premium-section">
+                <div class="premium-icon">👑</div>
+                <h2 class="premium-title">Go Premium</h2>
+                <p style="color: #666; margin-bottom: 20px;">Unlock the ultimate video experience</p>
+                
+                <ul class="premium-features">
+                    <li>Ad-free video streaming</li>
+                    <li>Access to exclusive premium content</li>
+                    <li>Faster video loading and streaming</li>
+                    <li>HD and 4K video quality</li>
+                    <li>Unlimited downloads</li>
+                    <li>Priority customer support</li>
+                </ul>
+
+                <button class="premium-btn" onclick="subscribeToPremium()">
+                    🚀 Subscribe Now - $9.99/month
+                </button>
+                
+                <p style="color: #999; margin-top: 15px; font-size: 12px;">
+                    Cancel anytime. No hidden fees.
+                </p>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let currentVideoTitle = "Select a video to play";
+        let isFullscreen = false;
+
+        function switchTab(tabName) {
+            // Hide all tab contents
+            var tabs = document.querySelectorAll('.tab-content');
+            tabs.forEach(function(tab) {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active class from all tab buttons
+            var buttons = document.querySelectorAll('.tab-button');
+            buttons.forEach(function(btn) {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked tab button
+            event.currentTarget.classList.add('active');
+        }
+
+        function toggleFullscreen() {
+            const videoWrapper = document.getElementById('videoWrapper');
+            const fullscreenBtn = document.getElementById('fullscreenBtn');
+            
+            if (!isFullscreen) {
+                // Enter fullscreen
+                videoWrapper.classList.add('fullscreen');
+                fullscreenBtn.innerHTML = '❌ Exit Fullscreen';
+                isFullscreen = true;
+                
+                // Hide scrollbar
+                document.body.style.overflow = 'hidden';
+                
+            } else {
+                // Exit fullscreen
+                videoWrapper.classList.remove('fullscreen');
+                fullscreenBtn.innerHTML = '🔳 Fullscreen';
+                isFullscreen = false;
+                
+                // Show scrollbar
+                document.body.style.overflow = 'auto';
+            }
+        }
+
+        // Exit fullscreen on ESC key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape' && isFullscreen) {
+                toggleFullscreen();
+            }
+        });
+
+        function playVideo(videoId, title, youtubeId) {
+            currentVideoTitle = title;
+            
+            // Show interstitial ad first
+            showInterstitialAd();
+            
+            // After ad closes, switch to player
+            setTimeout(function() {
+                // Switch to player tab
+                switchTab('player');
+                
+                // Update tab button active state manually
+                var buttons = document.querySelectorAll('.tab-button');
+                buttons.forEach(function(btn) {
+                    btn.classList.remove('active');
+                });
+                buttons[1].classList.add('active'); // Player tab is second button
+                
+                // Update video iframe
+                var iframe = document.getElementById('videoPlayer');
+                iframe.src = `https://www.youtube.com/embed/${youtubeId}?autoplay=1`;
+                
+                // Update page title
+                document.querySelector('#player h2').textContent = `🎥 Now Playing: ${title}`;
+            }, 6000); // Wait for ad to close
+        }
+
+        function addComment() {
+            var input = document.getElementById('commentInput');
+            var value = input.value.trim();
+            if (value !== '') {
+                var div = document.createElement('p');
+                div.textContent = value;
+                document.getElementById('commentsList').appendChild(div);
+                input.value = '';
+            }
+        }
+
+        function likeVideo() {
+            alert('👍 You liked the video: ' + currentVideoTitle);
+        }
+
+        function shareVideo() {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Check out this video: ' + currentVideoTitle,
+                    url: window.location.href
+                });
+            } else {
+                // Fallback for browsers without Web Share API
+                navigator.clipboard.writeText(window.location.href).then(function() {
+                    alert('🔗 Video link copied to clipboard!');
+                });
+            }
+        }
+
+        function downloadVideo() {
+            alert('📥 Download started for: ' + currentVideoTitle + '\n(This is a demo - implement actual download functionality)');
+        }
+
+        function subscribeToPremium() {
+            alert('🚀 Premium subscription coming soon!\nYou will be redirected to payment page.');
+        }
+
+        // Interstitial Ad Functions
+        function showInterstitialAd() {
+            const modal = document.getElementById('interstitialAdModal');
+            modal.style.display = 'flex';
+            
+            let countdown = 5;
+            const timerSpan = document.getElementById('adTimer');
+            const button = modal.querySelector('button:last-child');
+            
+            // Disable close button initially
+            button.disabled = true;
+            button.style.opacity = '0.5';
+            
+            const timer = setInterval(function() {
+                countdown--;
+                timerSpan.textContent = countdown;
+                
+                if (countdown <= 0) {
+                    clearInterval(timer);
+                    button.disabled = false;
+                    button.style.opacity = '1';
+                    button.textContent = 'Close Ad';
+                }
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
